@@ -1,6 +1,6 @@
 #--------------------
 #Objective: 毕业论文数据处理与分析-R&M帕累托效率分析
-#Updated: 18th March, 2023
+#Updated: 21th March, 2023
 #Email: weiyizhang1012@qq.com
 #Content Credits: Weiyi Zhang
 #--------------------
@@ -161,58 +161,124 @@ merge$group <- str_sub(merge$group, 5)
 merge$group <- gsub(pattern = "days", replacement = "天", merge$group)
 merge$group <- paste(merge$type, merge$group, sep = "+")
 
-###############disuse#####################
 ## 3 dimensions: R_integral_inverse, M_integral, tick
-## pick 20 colours
-#colour_list_r <- c(0, 0, 165, 184, 0, 139, 139, 30, 47, 50, 178, 255, 255, 72, 0, 199, 107, 160, 255, 46)
-#colour_list_g <- c(0, 0, 42, 134, 100, 0, 0, 144, 79, 205, 34, 215, 105, 209, 0, 21, 142, 32, 0, 139)
-#colour_list_b <- c(0, 255, 42, 11, 0, 139, 0, 255, 79, 50, 34, 0, 180, 204, 128, 133, 35, 240, 0, 87)
-#group_list <- unique(merge$group)
-#merge_for_plot <- merge %>%
-#  filter(R_integral_inverse != Inf) %>%
-#  filter(group == group_list[1]) %>%
-#  mutate(r = seq(255, colour_list_r[1], length.out = 70),
-#         g = seq(255, colour_list_g[1], length.out = 70),
-#         b = seq(255, colour_list_b[1], length.out = 70),
-#         group_tick = paste(group, tick, sep = "")) %>%
-#  mutate(colour = rgb(r, g, b, max = 255))
-#for (i in 2:20) {
-#  a <- merge %>%
-#    filter(R_integral_inverse != Inf) %>%
-#    filter(group == group_list[i]) %>%
-#    mutate(r = seq(255, colour_list_r[i], length.out = 70),
-#           g = seq(255, colour_list_g[i], length.out = 70),
-#           b = seq(255, colour_list_b[i], length.out = 70),
-#           group_tick = paste(group, tick, sep = "")) %>%
-#    mutate(colour = rgb(r, g, b, max = 255))
-#  
-#  merge_for_plot <- rbind(merge_for_plot, a)
-#}
-#rm(a)
-#
-#m <- as.vector(merge_for_plot$colour)
-#f <- as.vector(merge_for_plot$group_tick)
-#merge_for_plot$group_tick <- factor(merge_for_plot$group_tick, levels = f,
-#                  labels = f)
-#
-#merge_for_plot1 <- merge_for_plot %>%
-#  filter(tick %in% 2:30)
-#merge_for_plot2 <- merge_for_plot %>%
-#  filter(tick %in% 30:70)
-#
-#p <- merge_for_plot2 %>%
-#  filter(tick != 1) %>%
-#  ggplot(aes(x = M_integral, y = R_integral_inverse, colour = group_tick, size = tick)) +
-#  geom_point() +
-#  scale_color_manual(values = m) +
-#  theme_bw() +
-#  theme(legend.position = "none")
-#p
-#p %>%
-#  gg.gap(segments = c(0.0002,0.028),
-#         tick_width = c(0.0001,0.001),
-#         ylim = c(0, 0.032))
-###############disuse#####################
+# pick 20 colours
+colour_list_r <- c(0, 0, 165, 184, 0, 139, 139, 30, 47, 50, 178, 255, 255, 72, 0, 199, 107, 160, 255, 46)
+colour_list_g <- c(0, 0, 42, 134, 100, 0, 0, 144, 79, 205, 34, 215, 105, 209, 0, 21, 142, 32, 0, 139)
+colour_list_b <- c(0, 255, 42, 11, 0, 139, 0, 255, 79, 50, 34, 0, 180, 204, 128, 133, 35, 240, 0, 87)
+group_list <- unique(merge$group)
+merge_for_plot <- merge %>%
+  filter(R_integral_inverse != Inf) %>%
+  filter(group == group_list[1]) %>%
+  mutate(r = seq(255, colour_list_r[1], length.out = 70),
+         g = seq(255, colour_list_g[1], length.out = 70),
+         b = seq(255, colour_list_b[1], length.out = 70),
+         group_tick = paste(group, tick, sep = "")) %>%
+  mutate(colour = rgb(r, g, b, max = 255))
+for (i in 2:20) {
+  a <- merge %>%
+    filter(R_integral_inverse != Inf) %>%
+    filter(group == group_list[i]) %>%
+    mutate(r = seq(255, colour_list_r[i], length.out = 70),
+           g = seq(255, colour_list_g[i], length.out = 70),
+           b = seq(255, colour_list_b[i], length.out = 70),
+           group_tick = paste(group, tick, sep = "")) %>%
+    mutate(colour = rgb(r, g, b, max = 255))
+  
+  merge_for_plot <- rbind(merge_for_plot, a)
+}
+rm(a)
+
+# 提取图例
+t <- merge_for_plot %>%
+  filter(tick == 70)
+n <- as.vector(t$colour)
+e <- as.vector(t$group)
+t$group <- factor(t$group, levels = e, labels = e)
+plot_t <- t %>%
+  ggplot(aes(x = M_integral, y = R_integral_inverse, colour = group)) + 
+  geom_point(alpha = 0.5, size = 3) + 
+  scale_color_manual(values = n) + 
+  theme_bw() + 
+  labs(
+    x = "累计人员流动性M",
+    y = "累计病毒传入风险R的倒数",
+    colour = "政策组合"
+  )
+plot_t
+rm(t,n,e,plot_t)
+
+q <- merge_for_plot %>%
+  filter(tick == 30)
+w <- as.vector(q$colour)
+r <- as.vector(q$group)
+q$group <- factor(q$group, levels = r, labels = r)
+plot_q <- q %>%
+  ggplot(aes(x = M_integral, y = R_integral_inverse, colour = group)) + 
+  geom_point(alpha = 0.5, size = 3) + 
+  scale_color_manual(values = w) + 
+  theme_bw() + 
+  labs(
+    x = "累计人员流动性M",
+    y = "累计病毒传入风险R的倒数",
+    colour = "政策组合"
+  )
+plot_q
+rm(q,w,r,plot_q)
+
+# 分为10-30和30-70tick绘制
+merge_for_plot1 <- merge_for_plot %>%
+  filter(tick %in% 10:30)
+merge_for_plot2 <- merge_for_plot %>%
+  filter(tick %in% 30:70)
+
+m1 <- as.vector(merge_for_plot1$colour)
+f1 <- as.vector(merge_for_plot1$group_tick)
+merge_for_plot1$group_tick <- factor(merge_for_plot1$group_tick, levels = f1, labels = f1)
+m2 <- as.vector(merge_for_plot2$colour)
+f2 <- as.vector(merge_for_plot2$group_tick)
+merge_for_plot2$group_tick <- factor(merge_for_plot2$group_tick, levels = f2, labels = f2)
+
+p1 <- merge_for_plot1 %>%
+  ggplot(aes(x = M_integral, y = R_integral_inverse, colour = group_tick, size = tick)) +
+  geom_point(alpha = 0.5) +
+  scale_color_manual(values = m1) +
+  scale_size_continuous(range = c(0.5,3))+
+  theme_bw() +
+  theme(
+    legend.position = "none"
+  ) + 
+  labs(
+    x = "累计人员流动性M",
+    y = "累计病毒传入风险R的倒数"
+  )
+p1
+plot_merge1 <- p1 %>%
+  gg.gap(segments = c(0.003,0.028),
+         tick_width = c(0.001,0.005),
+         ylim = c(0, 0.051))
+plot_merge1 # 手动export大小合适的图
+
+p2 <- merge_for_plot2 %>%
+  ggplot(aes(x = M_integral, y = R_integral_inverse, colour = group_tick, size = tick)) +
+  geom_point(alpha = 0.5) +
+  scale_color_manual(values = m2) +
+  scale_size_continuous(range = c(0.5,3))+
+  theme_bw() +
+  theme(
+    legend.position = "none"
+    ) + 
+  labs(
+    x = "累计人员流动性M",
+    y = "累计病毒传入风险R的倒数"
+  )
+p2
+plot_merge2 <- p2 %>%
+  gg.gap(segments = c(0.0005,0.028),
+         tick_width = c(0.0001,0.001),
+         ylim = c(0, 0.032))
+plot_merge2 # 手动export大小合适的图
+rm(m1, f1, m2, f2, p1, p2)
 
 ## cross-section result
 # 70tick
